@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Configuración de la página web
-st.set_page_config(page_title="Autoevaluación CoPsoQ-istas 21", page_icon="📊", layout="centered")
+st.set_page_config(page_title="Autoevaluación CoPsoQ-istas 21 By David Clímaco", page_icon="📊", layout="centered")
 
 # Funciones de lógica psicométrica
 def evaluar_dimension(puntuacion, favorable, intermedia):
