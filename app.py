@@ -197,6 +197,14 @@ if enviado:
                 st.warning(texto_resultado)
             else:
                 st.success(texto_resultado)
+st.markdown("---")
+    st.subheader("💡 ¿Qué hacer ahora?")
+    st.write("La defensa de la salud en el trabajo constituye un derecho fundamental protegido legalmente. Si presentas algún apartado en zona **Desfavorable**, es recomendable que compartas de manera colectiva estas impresiones con tus compañeros/as o representantes laborales para plantear mejoras organizativas en la empresa.")
+    
+    # --- BLOQUE FINAL CON TU FIRMA PERSONALIZADA ---
+    st.markdown("---")
+    st.markdown("<p style='text-align: center; color: gray; font-style: italic;'>By. David Clímaco</p>", unsafe_allow_html=True)
+    st.warning("⚠️ **Nota de privacidad:** Este entorno web procesa los datos localmente en tu sesión. Al recargar la página, tus respuestas se borrarán por completo y no quedarán almacenadas en ninguna base de datos pública.")
                 
             st.caption(f"Baremo oficial español de referencia -> Favorable: {info['fav'][0]}-{info['fav'][1]} | Intermedia: {info['int'][0]}-{info['int'][1]} | Desfavorable: fuera de estos límites.")
 
