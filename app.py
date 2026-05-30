@@ -1,199 +1,251 @@
 import streamlit as st
 
 # Configuración de la página web
-st.set_page_config(page_title="Autoevaluación CoPsoQ-istas 21 ", page_icon="📊", layout="centered")
+st.set_page_config(page_title="Autoevaluación CoPsoQ-istas 21 v2", page_icon="📊", layout="centered")
 
-# Funciones de lógica psicométrica
-def evaluar_dimension(puntuacion, favorable, intermedia):
-    if favorable[0] <= puntuacion <= favorable[1]:
-        return "FAVORABLE", "🟢"
-    elif intermedia[0] <= puntuacion <= intermedia[1]:
-        return "INTERMEDIA", "🟡"
-    else:
-        return "DESFAVORABLE", "🔴"
-
-# Textos de interpretación oficial y recomendaciones extraídos del manual
-interpretaciones_oficiales = {
-    "1. Exigencias Psicológicas": {
-        "definicion": "Se refieren al volumen de trabajo en relación al tiempo disponible para realizarlo y a la transferencia de sentimientos en el trabajo.",
-        "favorable": "Dispones de un ritmo de trabajo adecuado y logras desconectar de tus tareas al finalizar la jornada laboral.",
-        "intermedia": "Afrontas momentos puntuales de sobrecarga o desgaste que podrían requerir pausas o ajustes de planificación.",
-        "desfavorable": "Te sitúas en el sector de la población con peores exigencias. Requiere medidas urgentes como: adecuar el volumen de trabajo al tiempo disponible (revisando tiempos o aumentando personal), mejorar procesos o dotar de herramientas adecuadas."
-    },
-    "2. Control sobre el Trabajo": {
-        "definicion": "Margen de autonomía en la forma de realizar el trabajo y posibilidades de aplicar y desarrollar tus habilidades y conocimientos.",
-        "favorable": "Te sitúas entre la población asalariada con mejor autonomía. Tienes buen margen de decisión, iniciativa y desarrollo profesional.",
-        "intermedia": "Posees cierta influencia en tus tareas, pero tu margen para aprender o decidir sobre tus descansos y ritmos está limitado.",
-        "desfavorable": "Falta de autonomía y desarrollo. Se recomienda potenciar la participación en las decisiones sobre cómo realizar las tareas, evitar el trabajo estandarizado/monótono y permitir aplicar tus conocimientos."
-    },
-    "3. Inseguridad sobre el Futuro": {
-        "definicion": "Preocupación por los cambios de condiciones de trabajo no deseados o por la pérdida del propio empleo.",
-        "favorable": "Bajo nivel de preocupación. Sientes estabilidad respecto a tu puesto, tus tareas, tus horarios y tu salario.",
-        "intermedia": "Existe incertidumbre moderada o temor a variaciones contractuales, salariales o de tareas en el corto/mediano plazo.",
-        "desfavorable": "Alto nivel de preocupación por el futuro laboral. Afecta negativamente tu salud física o mental. Se deben buscar garantías de estabilidad en el empleo y transparencia en las condiciones acordadas."
-    },
-    "4. Apoyo Social y Calidad de Liderazgo": {
-        "definicion": "Apoyo de superiores o compañeros en las tareas, definición clara del puesto de trabajo y recepción de información a tiempo.",
-        "favorable": "Existe un gran clima de cooperación, transparencia organizativa, definición clara de roles y un liderazgo saludable.",
-        "intermedia": "El apoyo es irregular. Puede haber fallos de comunicación por parte de las jefaturas o falta de claridad en las responsabilidades.",
-        "desfavorable": "Aislamiento o falta de liderazgo efectivo. Medidas preventivas sugeridas: fomentar la ayuda mutua, cambiar la cultura de mando hacia una más participativa/justa, eliminar la competitividad destructiva y evitar el trabajo aislado."
-    },
-    "5. Doble Presencia": {
-        "definicion": "Necesidad de responder simultáneamente a las demandas del empleo y del trabajo doméstico y familiar.",
-        "favorable": "Consigues un equilibrio saludable entre tus responsabilidades laborales y la gestión de tu entorno doméstico.",
-        "intermedia": "Sufres tensión moderada al intentar compaginar horarios o al pensar en las tareas del hogar mientras estás trabajando.",
-        "desfavorable": "Alta sobrecarga. Sientes la necesidad de estar en la empresa y en casa a la vez de forma dañina. Se requieren medidas de conciliación: adaptar jornadas, evitar cambios de turno sin preaviso y respetar el tiempo de descanso."
-    },
-    "6. Estima": {
-        "definicion": "Trato como profesional y persona; reconocimiento y respeto obtenido en relación al esfuerzo que realizas.",
-        "favorable": "Te sientes debidamente valorado/a. Sientes que el esfuerzo y el respeto que recibes en la empresa están bien equilibrados.",
-        "intermedia": "El reconocimiento es intermitente o insuficiente dado el esfuerzo y compromiso que inviertes en la organización.",
-        "desfavorable": "Trato injusto o falta crítica de reconocimiento. La empresa tiene la obligación legal y moral de garantizar un trato digno, respeto a tu profesionalismo y compensaciones acordes al esfuerzo realizado."
-    }
-}
-
-# Mapeo de respuestas estándar a puntos
-opciones_estandar = {
-    "Siempre / Muy preocupado/a": 4,
-    "Muchas veces / Bastante preocupado/a": 3,
-    "Algunas veces / Más o menos preocupado/a": 2,
-    "Sólo alguna vez / Poco preocupado/a": 1,
-    "Nunca / Nada preocupado/a": 0
-}
-
-# Mapeo para preguntas inversas (P3, P27, P37)
-opciones_inversas = {
-    "Siempre": 0,
-    "Muchas veces": 1,
-    "Algunas veces": 2,
-    "Sólo alguna vez": 3,
-    "Nunca": 4
-}
-
-# Título de la aplicación
-st.title("📋 Cuestionario de Auto-Evaluación de Riesgos Psicosociales")
-st.write("**Versión corta del CoPsoQ-istas 21.** Instrumento diseñado para identificar y valorar la exposición a factores de riesgo para la salud de naturaleza psicosocial.")
-st.info("Por favor, lee detenidamente cada pregunta y elige la opción que mejor describa tu situación actual en tu puesto de trabajo.")
-
-# --- FORMULARIO DE STREAMLIT ---
-with st.form("cuestionario_form"):
+# Lógica de evaluación psicométrica según los baremos de la Versión 2
+def evaluar_dimension_v2(puntuacion, verde, amarillo):
+    es_escala_directa = verde[0] <= verde[1]
     
-    st.header("1. Exigencias Psicológicas")
-    p1 = st.radio("1) ¿Tienes que trabajar muy rápido?", list(opciones_estandar.keys()))
-    p2 = st.radio("2) ¿La distribución de tareas es irregular y provoca que se te acumule el trabajo?", list(opciones_estandar.keys()))
-    p3 = st.radio("3) ¿Tienes tiempo de llevar al día tu trabajo? *(Pregunta Inversa)*", list(opciones_inversas.keys()))
-    p4 = st.radio("4) ¿Te cuesta olvidar los problemas del trabajo?", list(opciones_estandar.keys()))
-    p5 = st.radio("5) ¿Tu trabajo, en general, es desgastador emocionalmente?", list(opciones_estandar.keys()))
-    p6 = st.radio("6) ¿Tu trabajo requiere que escondas tus emociones?", list(opciones_estandar.keys()))
-
-    st.markdown("---")
-
-    st.header("2. Control sobre el Trabajo")
-    p7 = st.radio("7) ¿Tienes influencia sobre la cantidad de trabajo que se te asigna?", list(opciones_estandar.keys()))
-    p8 = st.radio("8) ¿Se tiene en cuenta tu opinión cuando se te asignan tareas?", list(opciones_estandar.keys()))
-    p9 = st.radio("9) ¿Tienes influencia sobre el orden en el que realizas las tareas?", list(opciones_estandar.keys()))
-    p10 = st.radio("10) ¿Puedes decidir cuándo haces un descanso?", list(opciones_estandar.keys()))
-    p11 = st.radio("11) Si tienes algún asunto personal o familiar ¿puedes dejar tu puesto de trabajo al menos una hora sin tener que pedir un permiso especial?", list(opciones_estandar.keys()))
-    p12 = st.radio("12) ¿Tu trabajo requiere que tengas iniciativa?", list(opciones_estandar.keys()))
-    p13 = st.radio("13) ¿Tu trabajo permite que aprendas cosas nuevas?", list(opciones_estandar.keys()))
-    p14 = st.radio("14) ¿Te sientes comprometido con tu profesión?", list(opciones_estandar.keys()))
-    p15 = st.radio("15) ¿Tienen sentido tus tareas?", list(opciones_estandar.keys()))
-    p16 = st.radio("16) ¿Hablas con entusiasmo de tu empresa a otras personas?", list(opciones_estandar.keys()))
-
-    st.markdown("---")
-
-    st.header("3. Inseguridad sobre el Futuro")
-    st.subheader("En estos momentos, ¿estás preocupado/a...")
-    p17 = st.radio("17) ...por lo difícil que sería encontrar otro trabajo en el caso de que te quedaras en paro?", list(opciones_estandar.keys()))
-    p18 = st.radio("18) ...por si te cambian de tareas contra tu voluntad?", list(opciones_estandar.keys()))
-    p19 = st.radio("19) ...por si te cambian el horario (turno, días, horas) contra tu voluntad?", list(opciones_estandar.keys()))
-    p20 = st.radio("20) ...por si te varían el salario (bajas, actualizaciones, variable) contra tu voluntad?", list(opciones_estandar.keys()))
-
-    st.markdown("---")
-
-    st.header("4. Apoyo Social y Calidad de Liderazgo")
-    p21 = st.radio("21) ¿Sabes exactamente qué margen de autonomía tienes en tu trabajo?", list(opciones_estandar.keys()))
-    p22 = st.radio("22) ¿Sabes exactamente qué tareas son de tu responsabilidad?", list(opciones_estandar.keys()))
-    p23 = st.radio("23) ¿En esta empresa se te informa con suficiente antelación de los cambios que pueden afectar tu futuro?", list(opciones_estandar.keys()))
-    p24 = st.radio("24) ¿Recibes toda la información que necesitas para realizar bien tu trabajo?", list(opciones_estandar.keys()))
-    p25 = st.radio("25) ¿Recibes ayuda y apoyo de tus compañeras o compañeros?", list(opciones_estandar.keys()))
-    p26 = st.radio("26) ¿Recibes ayuda y apoyo de tu inmediato o inmediata superior?", list(opciones_estandar.keys()))
-    p27 = st.radio("27) ¿Tu puesto de trabajo se encuentra aislado del de tus compañeros/as? *(Pregunta Inversa)*", list(opciones_inversas.keys()))
-    p28 = st.radio("28) En el trabajo, ¿sientes que formas parte de un grupo?", list(opciones_estandar.keys()))
-    p29 = st.radio("29) ¿Tus actuales jefes inmediatos planifican bien el trabajo?", list(opciones_estandar.keys()))
-    p30 = st.radio("30) ¿Tus actuales jefes inmediatos se comunican bien con los trabajadores?", list(opciones_estandar.keys()))
-
-    st.markdown("---")
-
-    st.header("5. Doble Presencia")
-    opciones_p31 = {
-        "Soy el/la principal responsable y hago la mayor parte de tareas domésticas": 4,
-        "Hago aproximadamente la mitad de las tareas familiares y domésticas": 3,
-        "Hago más o menos una cuarta parte de las tareas familiares y domésticas": 2,
-        "Sólo hago tareas muy puntuales": 1,
-        "No hago ninguna o casi ninguna de estas tareas": 0
-    }
-    p31 = st.radio("31) ¿Qué parte del trabajo familiar y doméstico haces tú?", list(opciones_p31.keys()))
-    p32 = st.radio("32) Si faltas algún día de casa, ¿las tareas domésticas que realizas se quedan sin hacer?", list(opciones_estandar.keys()))
-    p33 = st.radio("33) Cuando estás en la empresa ¿piensas en las tareas domésticas y familiares?", list(opciones_estandar.keys()))
-    p34 = st.radio("34) ¿Hay momentos en los que necesitarías estar en la empresa y en casa a la vez?", list(opciones_estandar.keys()))
-
-    st.markdown("---")
-
-    st.header("6. Estima")
-    p35 = st.radio("35) Mis superiores me dan el reconocimiento que merezco", list(opciones_estandar.keys()))
-    p36 = st.radio("36) En las situaciones difíciles en el trabajo recibo el apoyo necesario", list(opciones_estandar.keys()))
-    p37 = st.radio("37) En mi trabajo me tratan injustamente *(Pregunta Inversa)*", list(opciones_inversas.keys()))
-    p38 = st.radio("38) Si pienso en todo el trabajo y esfuerzo realizado, el reconocimiento que recibo me parece adecuado", list(opciones_estandar.keys()))
-
-    enviado = st.form_submit_button("📊 Calcular e Interpretar Resultados")
-
-# --- PROCESAMIENTO DE RESULTADOS ---
-if enviado:
-    tot_exigencias = opciones_estandar[p1] + opciones_estandar[p2] + opciones_inversas[p3] + opciones_estandar[p4] + opciones_estandar[p5] + opciones_estandar[p6]
-    tot_control = opciones_estandar[p7] + opciones_estandar[p8] + opciones_estandar[p9] + opciones_estandar[p10] + opciones_estandar[p11] + opciones_estandar[p12] + opciones_estandar[p13] + opciones_estandar[p14] + opciones_estandar[p15] + opciones_estandar[p16]
-    tot_inseguridad = opciones_estandar[p17] + opciones_estandar[p18] + opciones_estandar[p19] + opciones_estandar[p20]
-    tot_apoyo = opciones_estandar[p21] + opciones_estandar[p22] + opciones_estandar[p23] + opciones_estandar[p24] + opciones_estandar[p25] + opciones_estandar[p26] + opciones_inversas[p27] + opciones_estandar[p28] + opciones_estandar[p29] + opciones_estandar[p30]
-    tot_doble = opciones_p31[p31] + opciones_estandar[p32] + opciones_estandar[p33] + opciones_estandar[p34]
-    tot_estima = opciones_estandar[p35] + opciones_estandar[p36] + opciones_inversas[p37] + opciones_estandar[p38]
-
-    dimensiones = {
-        "1. Exigencias Psicológicas":            {"puntos": tot_exigencias,   "fav": [0, 7],   "int": [8, 11]},
-        "2. Control sobre el Trabajo":           {"puntos": tot_control,      "fav": [26, 40], "int": [19, 25]},
-        "3. Inseguridad sobre el Futuro":        {"puntos": tot_inseguridad,  "fav": [0, 4],   "int": [5, 9]},
-        "4. Apoyo Social y Calidad de Liderazgo": {"puntos": tot_apoyo,        "fav": [32, 40], "int": [25, 31]},
-        "5. Doble Presencia":                    {"puntos": tot_doble,        "fav": [0, 2],   "int": [3, 6]},
-        "6. Estima":                             {"puntos": tot_estima,       "fav": [13, 16], "int": [10, 12]}
-    }
-
-    st.success("¡Cuestionario procesado correctamente!")
-    st.header("📊 Informe y Diagnóstico Personalizado")
-    st.write("A continuación se muestra tu nivel de exposición en los seis grupos de riesgos analizados, junto con su interpretación y recomendaciones oficiales:")
-
-    for dim, info in dimensiones.items():
-        nivel, emoji = evaluar_dimension(info["puntos"], info["fav"], info["int"])
-        
-        # Seleccionar texto interpretativo dinámico según el resultado del usuario
-        if nivel == "FAVORABLE":
-            texto_resultado = interpretaciones_oficiales[dim]["favorable"]
-            color_header = "green"
-        elif nivel == "INTERMEDIA":
-            texto_resultado = interpretaciones_oficiales[dim]["intermedia"]
-            color_header = "orange"
+    if es_escala_directa:
+        if verde[0] <= puntuacion <= verde[1]:
+            return "FAVORABLE", "🟢"
+        elif amarillo[0] <= puntuacion <= amarillo[1]:
+            return "INTERMEDIA", "🟡"
         else:
-            texto_resultado = interpretaciones_oficiales[dim]["desfavorable"]
-            color_header = "red"
+            return "DESFAVORABLE", "🔴"
+    else:
+        if verde[1] <= puntuacion <= verde[0]:
+            return "FAVORABLE", "🟢"
+        elif amarillo[1] <= puntuacion <= amarillo[0]:
+            return "INTERMEDIA", "🟡"
+        else:
+            return "DESFAVORABLE", "🔴"
 
-        # Caja desplegable visual con formato estilizado
-        with st.expander(f"{emoji} **{dim}** — Nivel {nivel} ({info['puntos']} puntos)"):
-            st.markdown(f"**¿Qué mide esta dimensión?**")
-            st.write(interpretaciones_oficiales[dim]["definicion"])
-            st.markdown(f"**Interpretación de tu resultado:**")
+# Diccionario completo de definiciones y orientaciones preventivas oficiales v2
+info_oficial_v2 = {
+    "Exigencias cuantitativas": {
+        "definicion": "Son las exigencias psicológicas derivadas de la cantidad de trabajo. Se relacionan estrechamente con el ritmo y con el tiempo de trabajo.",
+        "origen": "Falta de personal, incorrecta medición de los tiempos, mala planificación o herramientas inadecuadas.",
+        "medida": "Adecuar la cantidad de trabajo al tiempo disponible aumentando personal o mejorando procesos."
+    },
+    "Doble presencia": {
+        "definicion": "Son las exigencias sincrónicas y simultáneas del ámbito laboral y del ámbito doméstico-familiar.",
+        "origen": "Exigencias cuantitativas altas, prolongación unilateral de la jornada o horarios incompatibles con el cuidado.",
+        "medida": "Facilitar la compatibilización entre la vida laboral y familiar y garantizar horarios pactados."
+    },
+    "Exigencias emocionales": {
+        "definicion": "Exigencias para no involucrarnos en la situación emocional derivada de las relaciones interpersonales que implica el trabajo.",
+        "origen": "Naturaleza de las tareas en ocupaciones de servicios y alta exposición a situaciones conflictivas de terceros.",
+        "medida": "Proporcionar formación en habilidades específicas y aportar tiempos de reposo o rotación."
+    },
+    "Ritmo de trabajo": {
+        "definicion": "Constituye la exigencia psicológica referida específicamente a la intensidad del trabajo en relación con la cantidad y el tiempo.",
+        "origen": "Variaciones de la plantilla, presión de tiempos o demandas de producción excesivas.",
+        "medida": "Adecuar el ritmo a la capacidad real, evitando aceleraciones por falta de planificación organizativa."
+    },
+    "Influencia": {
+        "definicion": "Margen de autonomía en el día a día del trabajo: sobre las tareas a realizar (el qué), el orden y los métodos a emplear (el cómo).",
+        "origen": "Métodos de trabajo centralizados y directivas que limitan la participación básica.",
+        "medida": "Potenciar la participación en las decisiones relacionadas con las tareas cotidianas."
+    },
+    "Posibilidades de desarrollo": {
+        "definicion": "Oportunidades que ofrece el trabajo para poner en práctica conocimientos, habilidades y experiencia, así como para adquirir nuevos.",
+        "origen": "Trabajo altamente estandarizado, monótono, rutinario y repetitivo.",
+        "medida": "Incrementar las oportunidades diseñando contenidos complejos y variados."
+    },
+    "Sentido del trabajo": {
+        "definicion": "Relación del trabajo con otros valores (utilidad, importancia social) y conocimiento de su contribución al servicio final.",
+        "origen": "Fraccionamiento extremo de las tareas donde se desconoce el impacto real de lo que se realiza.",
+        "medida": "Fomentar la claridad organizativa y dar visibilidad al valor de la labor de cada persona."
+    },
+    "Claridad de rol": {
+        "definicion": "Conocimiento concreto sobre la definición de las tareas a realizar, objetivos, recursos y margen de autonomía.",
+        "origen": "Ausencia de definiciones concisas de los puestos de trabajo o fallos de comunicación interna.",
+        "medida": "Definir con precisión los puestos de trabajo y las tareas asignadas de antemano."
+    },
+    "Conflicto de rol": {
+        "definicion": "Exigencias contradictorias que se presentan en el trabajo o aquellas que suponen un conflicto de carácter profesional o ético.",
+        "origen": "Órdenes contrarias entre sí (ej. rapidez extrema versus calidad minuciosa sin recursos).",
+        "medida": "Eliminar instrucciones contradictorias y asegurar procedimientos claros."
+    },
+    "Previsibilidad": {
+        "definicion": "Disponer de la información adecuada, suficiente y a tiempo para realizar correctamente el trabajo y adaptarse a futuros cambios.",
+        "origen": "Prácticas de comunicación empresarial deficientes o secretismo institucional.",
+        "medida": "Entregar la información con antelación suficiente y proveer formación ante cambios."
+    },
+    "Inseguridad sobre las condiciones de trabajo": {
+        "definicion": "Preocupación por el futuro en relación a cambios no deseados en condiciones fundamentales (puesto, tareas, horario, salario).",
+        "origen": "Asignaciones arbitrarias de jornadas o turnos, y modificaciones unilaterales.",
+        "medida": "Garantizar la estabilidad en las condiciones pactadas eliminando decisiones imprevistas."
+    },
+    "Inseguridad sobre el trabajo": {
+        "definicion": "Preocupación por el futuro en relación a la estabilidad en el empleo o la pérdida del puesto de ocupación.",
+        "origen": "Uso abusivo o sistemático de la contratación temporal sin justificación real.",
+        "medida": "Garantizar la seguridad y estabilidad en el empleo reduciendo la temporalidad."
+    },
+    "Confianza vertical": {
+        "definicion": "Seguridad de que la dirección actuará de manera adecuada, competente y justa sin sacar ventaja de su posición de poder.",
+        "origen": "Falta de fiabilidad en la información de los mandos o historial de promesas incumplidas.",
+        "medida": "Cambiar la cultura de mando hacia directivas transparentes, honestas y fiables."
+    },
+    "Justicia": {
+        "definicion": "Medida en la que las personas trabajadoras son tratadas con equidad en su trabajo (reparto de tareas, resolución de conflictos).",
+        "origen": "Arbitrariedad en la toma de decisiones diarias y favoritismos.",
+        "medida": "Garantizar el respeto y la justicia organizacional mediante criterios objetivos."
+    },
+    "Calidad del liderazgo": {
+        "definicion": "Valoración de la gestión, planificación y conducción de los equipos humanos que realizan los mandos inmediatos.",
+        "origen": "Ausencia de principios claros de gestión o líderes enfocados únicamente en la presión.",
+        "medida": "Proporcionar formación y habilidades directivas orientadas al apoyo mutuo."
+    }
+}
+
+# Mapeos de puntuación (Versión 2)
+opciones_frecuencia = {"Siempre": 4, "Muchas veces": 3, "A veces": 2, "Solo alguna vez": 1, "Nunca": 0}
+opciones_frecuencia_inversa = {"Siempre": 0, "Muchas veces": 1, "A veces": 2, "Solo alguna vez": 3, "Nunca": 4}
+opciones_medida = {"En gran medida": 4, "En buena medida": 3, "En cierta medida": 2, "En alguna medida": 1, "En ningún caso": 0}
+
+# Título e interfaz de usuario
+st.title("📋 CUESTIONARIO PARA LA AUTO-EVALUACIÓN DE RIESGOS PSICOSOCIALES EN EL TRABAJO")
+st.subheader("CoPsoQ-istas 21 — Versión 2 (Sensibilización)")
+st.write("Esta herramienta te ayudará a identificar las condiciones organizativas que impactan en tu salud.")
+
+# Formulario unificado de 30 preguntas
+with st.form("copsoq_v2_form"):
+    
+    st.header("Sección A: Exigencias y Contenidos del Trabajo (Frecuencia)")
+    p1 = st.radio("1. ¿La distribución de tareas es irregular y provoca que se te acumule el trabajo?", list(opciones_frecuencia.keys()))
+    p2 = st.radio("2. ¿Tienes tiempo suficiente para hacer tu trabajo?", list(opciones_frecuencia_inversa.keys()))
+    p3 = st.radio("3. ¿Hay momentos en los que necesitarías estar en la empresa y en casa a la vez?", list(opciones_frecuencia.keys()))
+    p4 = st.radio("4. ¿Sientes que tu trabajo te ocupa tanto tiempo que perjudica a tus tareas domésticas y familiares?", list(opciones_frecuencia.keys()))
+    p5 = st.radio("5. ¿En el trabajo tienes que ocuparte de los problemas personales de otros?", list(opciones_frecuencia.keys()))
+    p6 = st.radio("6. ¿Tienes que trabajar muy rápido?", list(opciones_frecuencia.keys()))
+    p7 = st.radio("7. ¿Tienes mucha influencia sobre las decisiones que afectan a tu trabajo?", list(opciones_frecuencia.keys()))
+    p8 = st.radio("8. ¿Tienes influencia sobre CÓMO realizas tu trabajo?", list(opciones_frecuencia.keys()))
+
+    st.markdown("---")
+
+    st.header("Sección B: Contenidos del Trabajo (Intensidad)")
+    p9 = st.radio("9. ¿Tu trabajo, en general, es desgastador emocionalmente?", list(opciones_medida.keys()))
+    p10 = st.radio("10. ¿El ritmo de trabajo es alto durante toda la jornada?", list(opciones_medida.keys()))
+    p11 = st.radio("11. ¿Tu trabajo permite que aprendas cosas nuevas?", list(opciones_medida.keys()))
+    p12 = st.radio("12. ¿Tu trabajo permite que apliques tus habilidades y conocimientos?", list(opciones_medida.keys()))
+    p13 = st.radio("13. ¿Tus tareas tienen sentido?", list(opciones_medida.keys()))
+    p14 = st.radio("14. ¿Las tareas que haces te parecen importantes?", list(opciones_medida.keys()))
+
+    st.markdown("---")
+
+    st.header("Sección C: Definición de Tareas e Información")
+    p15 = st.radio("15. ¿Tu trabajo tiene objetivos claros?", list(opciones_medida.keys()))
+    p16 = st.radio("16. ¿Sabes exactamente qué se espera de ti en el trabajo?", list(opciones_medida.keys()))
+    p17 = st.radio("17. ¿Se te exigen cosas contradictorias en el trabajo?", list(opciones_medida.keys()))
+    p18 = st.radio("18. ¿Tienes que hacer tareas que tú crees que deberían hacerse de otra manera?", list(opciones_medida.keys()))
+    p19 = st.radio("19. ¿En tu empresa se te informa con suficiente antelación de decisiones importantes, cambios y proyectos de futuro?", list(opciones_medida.keys()))
+    p20 = st.radio("20. ¿Recibes toda la información que necesitas para realizar bien tu trabajo?", list(opciones_medida.keys()))
+
+    st.markdown("---")
+
+    st.header("Sección D: Preocupación por Cambios Futuros")
+    st.markdown("**En estos momentos, ¿estás preocupado o preocupada por...**")
+    p21 = st.radio("21. ...si te cambian el horario (turno, días de la semana, horas de entrada y salida) contra tu voluntad?", list(opciones_medida.keys()))
+    p22 = st.radio("22. ...si te varían el salario (que no te lo actualicen, que te lo bajen, variable, etc.)?", list(opciones_medida.keys()))
+    p23 = st.radio("23. ...si te despiden o no te renuevan el contrato?", list(opciones_medida.keys()))
+    p24 = st.radio("24. ...lo difícil que sería encontrar otro trabajo en el caso de que te quedaras en paro?", list(opciones_medida.keys()))
+
+    st.markdown("---")
+
+    st.header("Sección E: Reconocimiento, Confianza y Justicia")
+    p25 = st.radio("25. ¿Confía la dirección en que los trabajadores hacen un buen trabajo?", list(opciones_medida.keys()))
+    p26 = st.radio("26. ¿Te puedes fiar de la información procedente de la dirección?", list(opciones_medida.keys()))
+    p27 = st.radio("27. ¿Se solucionan los conflictos de una manera justa?", list(opciones_medida.keys()))
+    p28 = st.radio("28. ¿Se distribuyen las tareas de una forma justa?", list(opciones_medida.keys()))
+    p29 = st.radio("29. Tu actual jefe inmediato ¿planifica bien el trabajo?", list(opciones_medida.keys()))
+    p30 = st.radio("30. Tu actual jefe inmediato ¿resuelve bien los conflictos?", list(opciones_medida.keys()))
+
+    enviado = st.form_submit_button("📊 Analizar Resultados (Versión 2)")
+
+# Procesamiento al enviar
+if enviado:
+    # Extracción de puntos individuales
+    pts = {
+        1: opciones_frecuencia[p1],          2: opciones_frecuencia_inversa[p2],
+        3: opciones_frecuencia[p3],          4: opciones_frecuencia[p4],
+        5: opciones_frecuencia[p5],          6: opciones_frecuencia[p6],
+        7: opciones_frecuencia[p7],          8: opciones_medida[p8],
+        9: opciones_medida[p9],              10: opciones_medida[p10],
+        11: opciones_medida[p11],            12: opciones_medida[p12],
+        13: opciones_medida[p13],            14: opciones_medida[p14],
+        15: opciones_medida[p15],            16: opciones_medida[p16],
+        17: opciones_medida[p17],            18: opciones_medida[p18],
+        19: opciones_medida[p19],            20: opciones_medida[p20],
+        21: opciones_medida[p21],            22: opciones_medida[p22],
+        23: opciones_medida[p23],            24: opciones_medida[p24],
+        25: opciones_medida[p25],            26: opciones_medida[p26],
+        27: opciones_medida[p27],            28: opciones_medida[p28],
+        29: opciones_medida[p29],            30: opciones_medida[p30]
+    }
+
+    # Estructura de Dimensiones con las preguntas que se suman asociadas (Fórmula matemática)
+    dimensiones_v2 = {
+        "Exigencias cuantitativas":              {"puntos": pts[1] + pts[2],   "preguntas": [1, 2],   "verde": [0, 1], "amarillo": [2, 3]},
+        "Doble presencia":                       {"puntos": pts[3] + pts[4],   "preguntas": [3, 4],   "verde": [0, 3], "amarillo": [4, 5]},
+        "Exigencias emocionales":                {"puntos": pts[5] + pts[9],   "preguntas": [5, 9],   "verde": [0, 3], "amarillo": [4, 5]},
+        "Ritmo de trabajo":                      {"puntos": pts[6] + pts[10],  "preguntas": [6, 10],  "verde": [0, 1], "amarillo": [2, 3]},
+        "Influencia":                            {"puntos": pts[7] + pts[8],   "preguntas": [7, 8],   "verde": [8, 6], "amarillo": [5, 4]},
+        "Posibilidades de desarrollo":           {"puntos": pts[11] + pts[12], "preguntas": [11, 12], "verde": [8, 6], "amarillo": [5, 4]},
+        "Sentido del trabajo":                   {"puntos": pts[13] + pts[14], "preguntas": [13, 14], "verde": [8, 7], "amarillo": [6, 6]},
+        "Claridad de rol":                       {"puntos": pts[15] + pts[16], "preguntas": [15, 16], "verde": [8, 8], "amarillo": [7, 6]},
+        "Conflicto de rol":                      {"puntos": pts[17] + pts[18], "preguntas": [17, 18], "verde": [0, 1], "amarillo": [2, 3]},
+        "Previsibilidad":                        {"puntos": pts[19] + pts[20], "preguntas": [19, 20], "verde": [8, 7], "amarillo": [6, 5]},
+        "Inseguridad sobre las condiciones de trabajo": {"puntos": pts[21] + pts[22], "preguntas": [21, 22], "verde": [0, 1], "amarillo": [2, 3]},
+        "Inseguridad sobre el trabajo":          {"puntos": pts[23] + pts[24], "preguntas": [23, 24], "verde": [0, 2], "amarillo": [3, 4]},
+        "Confianza vertical":                    {"puntos": pts[25] + pts[26], "preguntas": [25, 26], "verde": [8, 7], "amarillo": [6, 5]},
+        "Justicia":                              {"puntos": pts[27] + pts[28], "preguntas": [27, 28], "verde": [8, 7], "amarillo": [6, 5]},
+        "Calidad del liderazgo":                 {"puntos": pts[29] + pts[30], "preguntas": [29, 30], "verde": [8, 7], "amarillo": [6, 5]}
+    }
+
+    st.success("¡Análisis completado correctamente con transparencia de fórmulas!")
+    st.header("📊 Tu Perfil de Exposición Psicosocial")
+
+    for dim, baremo in dimensiones_v2.items():
+        nivel, emoji = evaluar_dimension_v2(baremo["puntos"], baremo["verde"], baremo["amarillo"])
+        info = info_oficial_v2[dim]
+        
+        # Identificar los números de pregunta y los puntos que aportó cada una
+        idx_pA, idx_pB = baremo["preguntas"]
+        puntos_pA = pts[idx_pA]
+        puntos_pB = pts[idx_pB]
+
+        with st.expander(f"{emoji} **{dim}** — Total: {baremo['puntos']} puntos"):
+            # --- NUEVA SECCIÓN DE TRANSPARENCIA MATEMÁTICA ---
+            st.markdown("⚙️ **Fórmula y desglose de puntuación:**")
+            st.code(f"Dimensión Total = Pregunta {idx_pA} ({puntos_pA} pts) + Pregunta {idx_pB} ({puntos_pB} pts) = {baremo['puntos']} puntos")
             
-            # Si es desfavorable le damos un toque de alerta visual
-            if nivel == "DESFAVORABLE":
-                st.error(texto_resultado)
+            st.markdown(f"**¿Qué mide?**")
+            st.write(info["definicion"])
+            
+            st.markdown(f"**Situación actual:**")
+            if nivel == "FAVORABLE":
+                st.success(f"🟢 **Favorable para la salud:** Nivel óptimo de exposición.")
             elif nivel == "INTERMEDIA":
-                st.warning(texto_resultado)
+                st.warning(f"🟡 **Nivel intermedio:** Exposición moderada, requiere vigilancia.")
             else:
-                st.success(texto_resultado)
+                st.error(f"🔴 **Desfavorable para la salud:** Nivel nocivo que requiere intervención.")
+                st.markdown(f"**Posible origen:** {info['origen']}")
+                st.markdown(f"**Medida sugerida:** {info['medida']}")
+            
+            if baremo["verde"][0] <= baremo["verde"][1]:
+                lim_text = f"Favorable (Verde): {baremo['verde'][0]}-{baremo['verde'][1]} | Intermedio (Amarillo): {baremo['amarillo'][0]}-{baremo['amarillo'][1]}"
+            else:
+                lim_text = f"Favorable (Verde): {baremo['verde'][1]}-{baremo['verde'][0]} | Intermedio (Amarillo): {baremo['amarillo'][1]}-{baremo['amarillo'][0]}"
+            st.caption(f"Intervalos de referencia: {lim_text}")
+
+    # Cierre y Firma
+    st.markdown("---")
+    st.subheader("ACTÚA, DEFIENDE TU SALUD")
+    st.write("Impedir que las condiciones psicosociales de trabajo dañen la salud es posible mediante la adopción de medidas preventivas organizacionales en la empresa.")
+    
+    st.markdown("---")
+    st.markdown("<p style='text-align: center; color: gray; font-style: italic; font-size: 1.1em;'>By. David Clímaco</p>", unsafe_allow_html=True)
+    st.warning("⚠️ **Nota de privacidad:** Este entorno procesa tus respuestas en el navegador de manera local de forma anónima.")
