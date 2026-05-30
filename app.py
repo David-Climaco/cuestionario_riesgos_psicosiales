@@ -122,7 +122,8 @@ with st.form("copsoq_v2_form"):
     p5 = st.radio("5. ¿En el trabajo tienes que ocuparte de los problemas personales de otros?", list(opciones_frecuencia.keys()))
     p6 = st.radio("6. ¿Tienes que trabajar muy rápido?", list(opciones_frecuencia.keys()))
     p7 = st.radio("7. ¿Tienes mucha influencia sobre las decisiones que afectan a tu trabajo?", list(opciones_frecuencia.keys()))
-    p8 = st.radio("8. ¿Tienes influencia sobre CÓMO realizas tu trabajo?", list(opciones_frecuencia.keys()))
+    # CORREGIDO AQUÍ: Usa opciones_medida
+    p8 = st.radio("8. ¿Tienes influencia sobre CÓMO realizas tu trabajo?", list(opciones_medida.keys()))
 
     st.markdown("---")
 
@@ -186,7 +187,7 @@ if enviado:
         29: opciones_medida[p29],            30: opciones_medida[p30]
     }
 
-    # Estructura de Dimensiones con las preguntas que se suman asociadas (Fórmula matemática)
+    # Estructura de Dimensiones con las preguntas que se suman asociadas
     dimensiones_v2 = {
         "Exigencias cuantitativas":              {"puntos": pts[1] + pts[2],   "preguntas": [1, 2],   "verde": [0, 1], "amarillo": [2, 3]},
         "Doble presencia":                       {"puntos": pts[3] + pts[4],   "preguntas": [3, 4],   "verde": [0, 3], "amarillo": [4, 5]},
@@ -212,13 +213,11 @@ if enviado:
         nivel, emoji = evaluar_dimension_v2(baremo["puntos"], baremo["verde"], baremo["amarillo"])
         info = info_oficial_v2[dim]
         
-        # Identificar los números de pregunta y los puntos que aportó cada una
         idx_pA, idx_pB = baremo["preguntas"]
         puntos_pA = pts[idx_pA]
         puntos_pB = pts[idx_pB]
 
         with st.expander(f"{emoji} **{dim}** — Total: {baremo['puntos']} puntos"):
-            # --- NUEVA SECCIÓN DE TRANSPARENCIA MATEMÁTICA ---
             st.markdown("⚙️ **Fórmula y desglose de puntuación:**")
             st.code(f"Dimensión Total = Pregunta {idx_pA} ({puntos_pA} pts) + Pregunta {idx_pB} ({puntos_pB} pts) = {baremo['puntos']} puntos")
             
@@ -241,11 +240,10 @@ if enviado:
                 lim_text = f"Favorable (Verde): {baremo['verde'][1]}-{baremo['verde'][0]} | Intermedio (Amarillo): {baremo['amarillo'][1]}-{baremo['amarillo'][0]}"
             st.caption(f"Intervalos de referencia: {lim_text}")
 
-    # Cierre y Firma
     st.markdown("---")
     st.subheader("ACTÚA, DEFIENDE TU SALUD")
     st.write("Impedir que las condiciones psicosociales de trabajo dañen la salud es posible mediante la adopción de medidas preventivas organizacionales en la empresa.")
     
     st.markdown("---")
     st.markdown("<p style='text-align: center; color: gray; font-style: italic; font-size: 1.1em;'>By. David Clímaco</p>", unsafe_allow_html=True)
-    st.warning("⚠️ **Nota de privacidad:** Este entorno procesa tus respuestas en el navegador de manera local de forma anónima.")
+    st.warning("⚠️ **Nota de privacidad:** Este entorno procesa tus respuestas en el navegador de manera local de forma anónima. by DC**")
